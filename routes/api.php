@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\BlackListController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\PostController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -11,54 +15,64 @@ use Illuminate\Support\Facades\Route;
 | Here is where you can register API routes for your application. These
 | routes are loaded by the RouteServiceProvider within a group which
 | is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
-// Route::post('user/info','App\Http\Controllers\UserController@getProfileInfo');
+ */
+//Users
+Route::post('user/authorize', 'App\Http\Controllers\UserController@Authorization');
+Route::middleware('auth')->get('user/news', [UserController::class, 'News']);
 
-// Route::middleware('auth:api')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
+Route::middleware('auth')->get('user/posts', [UserController::class, 'getPosts']);
 
-Route::post('user/authorize','App\Http\Controllers\UserController@Authorization');
+Route::middleware('auth')->put('user/{id}', [UserController::class, 'update']);
 
-Route::get('user/news','App\Http\Controllers\UserController@News');
+Route::middleware('auth')->get('user/{id}', [UserController::class, 'show']);
 
-Route::get('user/posts','App\Http\Controllers\UserController@getPosts');
+Route::middleware('auth')->post('user/', [UserController::class, 'store']);
 
-Route::get('user/profile_info','App\Http\Controllers\UserController@getProfileInfo');
+Route::middleware('auth')->get('user', [UserController::class, 'index']);
 
-// Route::middleware('auth:api')->get('user/profile_info', [UserController::class, 'getProfileInfo']);//показать профиль авторизовнного пользователя
+Route::middleware('auth')->get('user/posts', [UserController::class, 'getPosts']);
+//Posts
+Route::middleware('auth')->get('post', [PostController::class, 'index']);
 
-// //все для постов
-// Route::middleware('auth:api')->get('posts', [PostController::class, 'show']);// просмотр своих постов авторизованным пользователем
-// Route::middleware('auth:api')->get('posts/{id}', [PostController::class, 'show']);// просмотр чужих постов авторизованным пользователем
-// Route::middleware('auth:api')->post('posts', [PostController::class, 'store']);// создание поста авторизованным пользователем
-// Route::middleware('auth:api')->delete('posts/{id}', [PostController::class, 'destroy']);// удаление поста авторизованным пользователем
-// Route::middleware('auth:api')->get('users/wall', [PostController::class, 'wall']); 
+Route::middleware('auth')->post('post/', [PostController::class, 'store']);
 
-// //все для коментов
-// Route::middleware('auth:api')->post('comments', [CommentController::class, 'store']);//создание коментария
-// Route::middleware('auth:api')->delete('comments/{id}', [CommentController::class, 'destroy']); //удаление коментария
+Route::middleware('auth')->get('post/{id}', [PostController::class, 'show']);
 
+Route::middleware('auth')->get('post/{id}', [PostController::class, 'update']);
 
-// //все для блэк листа
-// Route::middleware('auth:api')->get('blackList/{id}', [BlackListController::class, 'check']);// проверка на нахождение в черном списке
-// Route::middleware('auth:api')->post('blackList', [BlackListController::class, 'store']); //добавление в черный список
+Route::middleware('auth')->get('post/{id}', [PostController::class, 'destroy']);
+//Blacklist
+Route::middleware('auth')->get('blacklist', [BlacklistController::class, 'index']);
 
-// //все для подписания
-// Route::middleware('auth:api')->post('subscription', [SubscriptionController::class, 'store']);//подписапться на кого либо
+Route::middleware('auth')->post('blacklist/', [BlacklistController::class, 'store']);
 
-Route::resource('user', 'App\Http\Controllers\UserController');
+Route::middleware('auth')->get('blacklist/{id}', [BlacklistController::class, 'show']);
 
-Route::resource('post', 'App\Http\Controllers\PostController');
+Route::middleware('auth')->get('blacklist/{id}', [BlacklistController::class, 'update']);
 
-Route::resource('follower', 'App\Http\Controllers\FollowerController');
+Route::middleware('auth')->get('blacklist/{id}', [BlacklistController::class, 'destroy']);
+//Comment
+Route::middleware('auth')->get('comment', [CommentController::class, 'index']);
 
-Route::resource('comment', 'App\Http\Controllers\CommentController');
+Route::middleware('auth')->post('comment/', [CommentController::class, 'store']);
 
-Route::resource('blacklist', 'App\Http\Controllers\BlacklistController');
+Route::middleware('auth')->get('comment/{id}', [CommentController::class, 'show']);
 
+Route::middleware('auth')->get('comment/{id}', [CommentController::class, 'update']);
 
+Route::middleware('auth')->get('comment/{id}', [CommentController::class, 'destroy']);
+//Follow
+Route::middleware('auth')->get('follow', [FollowController::class, 'index']);
+
+Route::middleware('auth')->post('follow/', [FollowController::class, 'store']);
+
+Route::middleware('auth')->get('follow/{id}', [FollowController::class, 'show']);
+
+Route::middleware('auth')->get('follow/{id}', [FollowController::class, 'update']);
+
+Route::middleware('auth')->get('follow/{id}', [FollowController::class, 'destroy']);
+
+//Check auth
 Route::middleware('auth')->get('/me', function (Request $request) {
     return auth()->user();
 });
