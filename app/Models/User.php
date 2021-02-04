@@ -11,22 +11,22 @@ class User extends Authenticatable implements JWTSubject
 {
     use HasFactory, Notifiable;
 
-    public function getPosts()
+    public function posts()
     {
         return $this->hasMany('App\Models\Post', 'user_id');
     }
 
-    public function getComments()
+    public function comments()
     {
         return $this->hasMany('App\Models\Comment', 'owner_id');
     }
 
-    public function getFollowers()
+    public function followers()
     {
         return $this->hasMany('App\Models\Follower', 'user_id');
     }
 
-    public function getBlockedUsers()
+    public function blacklists()
     {
         return $this->hasMany('App\Models\Comment', 'user_id');
     }

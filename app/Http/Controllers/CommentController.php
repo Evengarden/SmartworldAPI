@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 class CommentController extends Controller
 {
     private $centrifugo;
+
     /**
      * Class __construct
      *
@@ -19,6 +20,7 @@ class CommentController extends Controller
     {
         $this->centrifugo = $centrifugo;
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -37,28 +39,25 @@ class CommentController extends Controller
      */
     public function store(Request $request)
     {
-        $user = auth()->user();
-        if ($user) {
-            $userId = $request->user_id;
-            if ($user->id == $userId) {
-                $blacklist = DB::table('users')
-                    ->select('blacklists.blocked_user_id as  blocked user')
-                    ->join('blacklists', 'users.id', '=', 'blacklists.user_id')
-                    ->where('blacklists.blocked_user_id', $userId)
-                    ->get();
+        $userId = $request->user_id;
+        if ($user->id == $userId) {
+            $blacklist = DB::table('users')
+                ->select('blacklists.blocked_user_id as  blocked user')
+                ->join('blacklists', 'users.id', '=', 'blacklists.user_id')
+                ->where('blacklists.blocked_user_id', $userId)
+                ->get();
 
-                if (count($blacklist)) {
-                    echo "Cant add the comment, you are in blacklist";
+            if (count($blacklist)) {
+                return response()->json(['error' => "Cant add the comment, you are in blacklist"], 400);
 
-                } else {
-                    $comment = Comment::create($request->all());
-                    $allComment = Comment::all();
-                    $this->centrifugo->publish('comment', ["comment" => $allComment]);
-                    return $comment;
-                }
             } else {
-                return "You can't add someone else's comment";
+                $comment = Comment::create($request->all());
+                $allComment = Comment::all();
+                $this->centrifugo->publish('comment', ["comment" => $allComment]);
+                return $comment;
             }
+        } else {
+            return response()->json(['error' => "You can't add someone else's comment"], 400);
         }
 
     }
@@ -71,9 +70,11 @@ class CommentController extends Controller
      */
     public function show($id)
     {
-        $user = auth()->user();
-        if ($user) {
-            return Comment::find($id);
+        $comment = Comment::find($id);
+        if ($comment) {
+            return $comment;
+        } else {
+            return response()->json(['error' => "Comment not found"], 404);
         }
 
     }
@@ -87,15 +88,16 @@ class CommentController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $user = auth()->user();
-        if ($user) {
-            $comment = Comment::find($id);
+        $comment = Comment::find($id);
+        if ($comment) {
             if ($user->id == $comment->user_id) {
                 $comment->update($request->all());
                 return $comment;
             } else {
-                return "You cant update someone else's comment";
+                return response()->json(['error' => "You cant update someone else's comment"], 400);
             }
+        } else {
+            return response()->json(['error' => "Comment not found"], 404);
         }
 
     }
@@ -108,17 +110,18 @@ class CommentController extends Controller
      */
     public function destroy(Request $request, $id)
     {
-        $user = auth()->user();
-        if ($user) {
-            $comment = Comment::find($id);
+        $comment = Comment::find($id);
+        if ($comment) {
             if ($user->id == $comment->user_id) {
                 $comment = Comment::destroy($id);
                 $allComment = Comment::all();
                 $this->centrifugo->publish('comment', ["comment" => $allComment]);
                 return $comment;
             } else {
-                return "You cant delete someone else's comment";
+                return response()->json(['error' => "You cant delete someone else's comment"], 400);
             }
+        } else {
+            return response()->json(['error' => "Comment not found"], 404);
         }
 
     }

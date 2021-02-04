@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 class PostController extends Controller
 {
     private $centrifugo;
+
     /**
      * Class __construct
      *
@@ -18,6 +19,7 @@ class PostController extends Controller
     {
         $this->centrifugo = $centrifugo;
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -36,15 +38,12 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        $user = auth()->user();
-        if ($user) {
-            $userId = $request->user_id;
-            if ($user->id == $userId) {
-                $post = Post::create($request->all());
-                $allPosts = Post::all();
-                $this->centrifugo->publish('posts', ["posts" => $allPosts]);
-                return $post;
-            }
+        $userId = $request->user_id;
+        if ($user->id == $userId) {
+            $post = Post::create($request->all());
+            $allPosts = Post::all();
+            $this->centrifugo->publish('posts', ["posts" => $allPosts]);
+            return $post;
         }
 
     }
@@ -57,9 +56,11 @@ class PostController extends Controller
      */
     public function show($id)
     {
-        $user = auth()->user();
-        if ($user) {
-            return Post::find($id);
+        $post = Post::find($id);
+        if ($post) {
+            return $post;
+        } else {
+            return response()->json(['error' => "Post not found"], 404);
         }
 
     }
@@ -74,14 +75,16 @@ class PostController extends Controller
     public function update(Request $request, $id)
     {
         $user = auth()->user();
-        if ($user) {
-            $post = Post::find($id);
+        $post = Post::find($id);
+        if ($post) {
             if ($user->id == $post->user_id) {
                 $post->update($request->all());
                 return $post;
             } else {
-                return "You can't update someone else's post";
+                return response()->json(['error' => "You can't update someone else's post"], 400);
             }
+        } else {
+            return response()->json(['error' => "Post not found"], 404);
         }
 
     }
@@ -95,16 +98,18 @@ class PostController extends Controller
     public function destroy($id)
     {
         $user = auth()->user();
-        if ($user) {
-            $post = Post::find($id);
+        $post = Post::find($id);
+        if ($post) {
             if ($user->id == $post->user_id) {
                 $post = Post::destroy($id);
                 $allPosts = Post::all();
                 $this->centrifugo->publish('posts', ["posts" => $allPosts]);
                 return $post;
             } else {
-                return 'You cant delete someone else`s post';
+                return response()->json(['error' => "You cant delete someone else`s post"], 400);
             }
+        } else {
+            return response()->json(['error' => "Post not found"], 404);
         }
 
     }

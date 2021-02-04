@@ -26,16 +26,14 @@ class FollowerController extends Controller
     public function store(Request $request)
     {
         $user = auth()->user();
-        if ($user) {
-            $userId = $request->user_id;
-            $followerId = $request->follower_id;
-            if ($user->id == $followerId) {
-                return "You can't subscribe to yourself";
-            } else if ($user->id != $userId) {
-                return "You can't subscribe instead someone else's";
-            } else {
-                return Follower::create($request->all());
-            }
+        $userId = $request->user_id;
+        $followerId = $request->follower_id;
+        if ($user->id == $followerId) {
+            return response()->json(['error' => "You can't subscribe to yourself"], 400);
+        } else if ($user->id != $userId) {
+            return response()->json(['error' => "You can't subscribe instead someone else's"], 400);
+        } else {
+            return Follower::create($request->all());
         }
 
     }
@@ -48,9 +46,11 @@ class FollowerController extends Controller
      */
     public function show($id)
     {
-        $user = auth()->user();
-        if ($user) {
-            return Follower::find($id);
+        $follower = Follower::find($id);
+        if ($follower) {
+            return $follower;
+        } else {
+            return response()->json(['error' => "Follower not found"], 404);
         }
 
     }
@@ -64,16 +64,18 @@ class FollowerController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $user = auth()->user();
-        if ($user) {
-            $follower = Follower::find($id);
+        $follower = Follower::find($id);
+        if($follower){
             if ($user->id == $follower->user_id) {
                 $follower->update($request->all());
                 return $follower;
             } else {
-                return "You cant update someone else's follow";
+                return response()->json(['error' => "You cant update someone else's follow"], 400);
             }
         }
+       else{
+        return response()->json(['error' => "Follower not found"], 404);
+       }
 
     }
 
@@ -85,16 +87,18 @@ class FollowerController extends Controller
      */
     public function destroy($id)
     {
-        $user = auth()->user();
-        if ($user) {
-            $follower = Follower::find($id);
+        $follower = Follower::find($id);
+        if($follower){
             if ($user->id == $follower->user_id) {
                 $follower = Follower::destroy($id);
                 return $follower;
             } else {
-                return "You cant delete someone else's follow";
+                return response()->json(['error' => "You cant delete someone else's follow"], 400);
             }
         }
+       else{
+        return response()->json(['error' => "Follower not found"], 404);
+       }
 
     }
 }

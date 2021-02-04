@@ -12,6 +12,7 @@ class BlacklistController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+
     public function index()
     {
         return Blacklist::all();
@@ -23,19 +24,17 @@ class BlacklistController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+
     public function store(Request $request)
     {
-        $user = auth()->user();
-        if ($user) {
-            $userId = $request->user_id;
-            $blockeduserId = $request->blocked_user_id;
-            if ($user->id == $blockeduserId) {
-                return "You can't add yourself to blacklist";
-            } else if ($user->id != $userId) {
-                return "You can't add to blacklist instead someone else's";
-            } else {
-                return Blacklist::create($request->all());
-            }
+        $userId = $request->user_id;
+        $blockeduserId = $request->blocked_user_id;
+        if ($user->id == $blockeduserId) {
+            return response()->json(['error' => "You can't add yourself to blacklist"], 400);
+        } else if ($user->id != $userId) {
+            return response()->json(['error' => "You can't add to blacklist instead someone else's"], 400);
+        } else {
+            return Blacklist::create($request->all());
         }
 
     }
@@ -46,14 +45,15 @@ class BlacklistController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
+
     public function show($id)
     {
-        $user = auth()->user();
-        if ($user) {
-            return Blacklist::find($id);
-
+        $blacklist = Blacklist::find($id);
+        if ($blacklist) {
+            return $blacklist;
+        } else {
+            return response()->json(['error' => "Blacklist not found"], 404);
         }
-
     }
 
     /**
@@ -63,17 +63,19 @@ class BlacklistController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
+
     public function update(Request $request, $id)
     {
-        $user = auth()->user();
-        if ($user) {
-            $blacklist = Blacklist::find($id);
+        $blacklist = Blacklist::find($id);
+        if ($blacklist) {
             if ($user->id == $blacklist->user_id) {
                 $blacklist->update($request->all());
                 return $blacklist;
             } else {
-                return "You cant update someone else's blacklist";
+                return response()->json(['error' => "You cant update someone else's blacklist"], 400);
             }
+        } else {
+            return response()->json(['error' => "Blacklist not found"], 404);
         }
 
     }
@@ -84,17 +86,19 @@ class BlacklistController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
+
     public function destroy($id)
     {
-        $user = auth()->user();
-        if ($user) {
-            $blacklist = Blacklist::find($id);
+        $blacklist = Blacklist::find($id);
+        if ($blacklist) {
             if ($user->id == $blacklist->user_id) {
                 $blacklist = Blacklist::destroy($id);
                 return $blacklist;
             } else {
-                return "You cant delete someone else's blacklist";
+                return response()->json(['error' => "You cant delete someone else's blacklist"], 400);
             }
+        } else {
+            return response()->json(['error' => "Blacklist not found"], 404);
         }
 
     }
