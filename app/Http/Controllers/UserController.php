@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -52,7 +53,6 @@ class UserController extends Controller
      */
     public function show($id)
     {
-
         $user = Redis::get('user_info/'.$id);
         if ($user) {
             return $user;
@@ -72,10 +72,10 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         $userId = $id;
-        if ($user->id == $userId) {
+        if (auth()->user()->id == $userId) {
             $user = User::find($id);
             $user->update($request->all());
-            $this->UpdateUserInfoRedis($userId);
+            $this->UpdateUserInfoRedis(auth()->user()->id);
             return $user;
         } else {
             return response()->json(['error' => "You cant update someone else's profile"], 400);

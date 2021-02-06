@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use denis660\Centrifugo\Centrifugo;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
@@ -39,8 +40,9 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $userId = $request->user_id;
-        if ($user->id == $userId) {
+        if (auth()->user()->id == $userId) {
             $post = Post::create($request->all());
+            $this->UpdateUserPostRedis($userId);
             $allPosts = Post::all();
             $this->centrifugo->publish('posts', ["posts" => $allPosts]);
             return $post;
@@ -56,12 +58,18 @@ class PostController extends Controller
      */
     public function show($id)
     {
-        $post = Post::find($id);
+        if(is_null($id)){
+            $post = Redis::get('user_post/'.auth()->user()->id);
+        }
+        else{
+            $post = Post::Find($id);
+        }
         if ($post) {
             return $post;
         } else {
             return response()->json(['error' => "Post not found"], 404);
         }
+           
 
     }
 
@@ -79,6 +87,7 @@ class PostController extends Controller
         if ($post) {
             if ($user->id == $post->user_id) {
                 $post->update($request->all());
+                $this->UpdateUserPostRedis($user->id);
                 return $post;
             } else {
                 return response()->json(['error' => "You can't update someone else's post"], 400);
@@ -103,6 +112,7 @@ class PostController extends Controller
             if ($user->id == $post->user_id) {
                 $post = Post::destroy($id);
                 $allPosts = Post::all();
+                $this->DeleteUserPostRedis($user->id);
                 $this->centrifugo->publish('posts', ["posts" => $allPosts]);
                 return $post;
             } else {

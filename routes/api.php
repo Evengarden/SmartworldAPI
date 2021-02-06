@@ -27,7 +27,7 @@ Route::group(['prefix' => '/user', 'middleware' => 'auth'], function () {
 
     Route::get('posts', [UserController::class, 'getPosts']);
 
-    Route::put('{id}', [UserController::class, 'update']);
+    Route::put('{id}/', [UserController::class, 'update']);
 
     Route::get('{id}', [UserController::class, 'show']);
 
@@ -43,9 +43,9 @@ Route::group(['prefix' => '/post', 'middleware' => 'auth'], function () {
 
     Route::get('{id}', [PostController::class, 'show']);
 
-    Route::get('{id}', [PostController::class, 'update']);
+    Route::put('{id}/', [PostController::class, 'update']);
 
-    Route::get('post/{id}', [PostController::class, 'destroy']);
+    Route::delete('{id}', [PostController::class, 'destroy']);
 
 });
 //Blacklist
@@ -56,9 +56,9 @@ Route::group(['prefix' => '/blacklist', 'middleware' => 'auth'], function () {
 
     Route::get('{id}', [BlacklistController::class, 'show']);
 
-    Route::get('{id}', [BlacklistController::class, 'update']);
+    Route::put('{id}', [BlacklistController::class, 'update']);
 
-    Route::get('{id}', [BlacklistController::class, 'destroy']);
+    Route::delete('{id}', [BlacklistController::class, 'destroy']);
 });
 //Comment
 Route::group(['prefix' => '/comment', 'middleware' => 'auth'], function () {
@@ -68,9 +68,9 @@ Route::group(['prefix' => '/comment', 'middleware' => 'auth'], function () {
 
     Route::get('{id}', [CommentController::class, 'show']);
 
-    Route::get('{id}', [CommentController::class, 'update']);
+    Route::put('{id}', [CommentController::class, 'update']);
 
-    Route::get('{id}', [CommentController::class, 'destroy']);
+    Route::delete('{id}', [CommentController::class, 'destroy']);
 
 });
 //Follow
@@ -81,9 +81,9 @@ Route::group(['prefix' => '/follow', 'middleware' => 'auth'], function () {
 
     Route::get('{id}', [FollowController::class, 'show']);
 
-    Route::get('{id}', [FollowController::class, 'update']);
+    Route::put('{id}', [FollowController::class, 'update']);
 
-    Route::get('{id}', [FollowController::class, 'destroy']);
+    Route::delete('{id}', [FollowController::class, 'destroy']);
 });
 
 //Check auth
