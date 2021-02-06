@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
@@ -18,7 +19,6 @@ class UserController extends Controller
      */
     public function index()
     {
-
         return User::all();
     }
 
@@ -30,16 +30,16 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        try {
-            $user = User::forceCreate([
-                'name' => $request['name'],
-                'email' => $request['email'],
-                'password' => Hash::make($request['password']),
-                'api_token' => Str::random(80),
-            ]);
+        $user = User::forceCreate([
+            'name' => $request['name'],
+            'email' => $request['email'],
+            'password' => Hash::make($request['password']),
+            'api_token' => Str::random(80),
+        ]);
+        if ($user) {
             return $user;
-        } catch (\Throwable $th) {
-            return response()->json(['error' => $th], 400);
+        } else {
+            return response()->json(['error' => "Bad request"], 400);
         }
 
     }
@@ -52,11 +52,13 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $user = User::find($id);
+        // $user = User::find($id);
+        Redis::set('user_id', $id);
+        $user = Redis::get('user_id' . $id);
         if ($user) {
             return $user;
         } else {
-            return response()->json(['error' => "User not found"], 400);
+            return response()->json(['error' => "User not found"], 404);
         }
 
     }
