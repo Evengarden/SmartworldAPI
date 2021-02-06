@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Route;
 //Users
 Route::post('user/authorize', 'App\Http\Controllers\UserController@Authorization');
 
+Route::post('user/', [UserController::class, 'store']);
+
 Route::group(['prefix' => '/user', 'middleware' => 'auth'], function () {
     Route::get('news', [UserController::class, 'News']);
 
@@ -28,8 +30,6 @@ Route::group(['prefix' => '/user', 'middleware' => 'auth'], function () {
     Route::put('{id}', [UserController::class, 'update']);
 
     Route::get('{id}', [UserController::class, 'show']);
-
-    Route::post('', [UserController::class, 'store']);
 
     Route::get('', [UserController::class, 'index']);
 

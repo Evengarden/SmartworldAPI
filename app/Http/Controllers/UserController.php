@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
@@ -37,6 +36,7 @@ class UserController extends Controller
             'api_token' => Str::random(80),
         ]);
         if ($user) {
+            $this->UpdateUserInfoRedis($user->id);
             return $user;
         } else {
             return response()->json(['error' => "Bad request"], 400);
@@ -52,9 +52,8 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        // $user = User::find($id);
-        Redis::set('user_id', $id);
-        $user = Redis::get('user_id' . $id);
+
+        $user = Redis::get('user_info/'.$id);
         if ($user) {
             return $user;
         } else {
@@ -76,6 +75,7 @@ class UserController extends Controller
         if ($user->id == $userId) {
             $user = User::find($id);
             $user->update($request->all());
+            $this->UpdateUserInfoRedis($userId);
             return $user;
         } else {
             return response()->json(['error' => "You cant update someone else's profile"], 400);
