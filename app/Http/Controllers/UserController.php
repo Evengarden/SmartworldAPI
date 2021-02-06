@@ -96,7 +96,7 @@ class UserController extends Controller
 
     }
 
-    public function News(Request $request)
+    public function news(Request $request)
     {
         $news = DB::select('select * from posts
             Join followers on

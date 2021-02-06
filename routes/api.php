@@ -23,7 +23,7 @@ Route::post('user/authorize', 'App\Http\Controllers\UserController@Authorization
 Route::post('user/', [UserController::class, 'store']);
 
 Route::group(['prefix' => '/user', 'middleware' => 'auth'], function () {
-    Route::get('news', [UserController::class, 'News']);
+    Route::get('news', [UserController::class, 'news']);
 
     Route::get('posts', [UserController::class, 'getPosts']);
 
