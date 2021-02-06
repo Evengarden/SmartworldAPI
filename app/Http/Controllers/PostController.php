@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use denis660\Centrifugo\Centrifugo;
-use Illuminate\Support\Facades\Redis;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
 
 class PostController extends Controller
 {
@@ -58,10 +58,9 @@ class PostController extends Controller
      */
     public function show($id)
     {
-        if(is_null($id)){
-            $post = Redis::get('user_post/'.auth()->user()->id);
-        }
-        else{
+        if (is_null($id)) {
+            $post = Redis::get('user_post/' . auth()->user()->id);
+        } else {
             $post = Post::Find($id);
         }
         if ($post) {
@@ -69,7 +68,6 @@ class PostController extends Controller
         } else {
             return response()->json(['error' => "Post not found"], 404);
         }
-           
 
     }
 
