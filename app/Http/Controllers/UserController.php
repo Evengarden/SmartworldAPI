@@ -118,7 +118,7 @@ class UserController extends Controller
 
     }
 
-    public function getProfileInfo(Request $request,$id)
+    public function getProfileInfo(Request $request, $id)
     {
         $userId = $id;
         $followers = User::query()

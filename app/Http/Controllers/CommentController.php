@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comment;
+use App\Models\Post;
 use denis660\Centrifugo\Centrifugo;
 use Illuminate\Http\Request;
-use App\Models\Post;
 
 class CommentController extends Controller
 {
@@ -40,7 +40,6 @@ class CommentController extends Controller
     public function store(Request $request)
     {
         $blacklist = Post::query()
-            // ->select('blacklists.blocked_user_id as  blocked user')
             ->join('blacklists', 'posts.user_id', '=', 'blacklists.user_id')
             ->where('blacklists.blocked_user_id', auth()->user()->id)
             ->get();

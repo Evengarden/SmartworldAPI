@@ -31,7 +31,7 @@ class BlacklistController extends Controller
         if (auth()->user()->id == $blockedUserId) {
             return response()->json(['error' => "You can't add yourself to blacklist"], 400);
         } else {
-            $request['user_id']=auth()->user()->id;
+            $request['user_id'] = auth()->user()->id;
             return Blacklist::create($request->all());
         }
 

@@ -62,17 +62,16 @@ class FollowerController extends Controller
     public function update(Request $request, $id)
     {
         $follower = Follower::find($id);
-        if($follower){
+        if ($follower) {
             if (auth()->user()->id == $follower->user_id) {
                 $follower->update($request->all());
                 return $follower;
             } else {
                 return response()->json(['error' => "You cant update someone else's follow"], 400);
             }
+        } else {
+            return response()->json(['error' => "Follower not found"], 404);
         }
-       else{
-        return response()->json(['error' => "Follower not found"], 404);
-       }
 
     }
 
@@ -85,17 +84,16 @@ class FollowerController extends Controller
     public function destroy($id)
     {
         $follower = Follower::find($id);
-        if($follower){
+        if ($follower) {
             if (auth()->user()->id == $follower->user_id) {
                 $follower = Follower::destroy($id);
                 return $follower;
             } else {
                 return response()->json(['error' => "You cant delete someone else's follow"], 400);
             }
+        } else {
+            return response()->json(['error' => "Follower not found"], 404);
         }
-       else{
-        return response()->json(['error' => "Follower not found"], 404);
-       }
 
     }
 }
