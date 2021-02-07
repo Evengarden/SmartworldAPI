@@ -2,10 +2,10 @@
 declare (strict_types = 1);
 namespace App\Http\Controllers;
 
+use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
@@ -71,22 +71,19 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $userId = $id;
-        if (auth()->user()->id == $userId) {
-            $user = User::find($id);
-            $user->update($request->all());
-            $this->UpdateUserInfoRedis(auth()->user()->id);
-            return $user;
-        } else {
-            return response()->json(['error' => "You cant update someone else's profile"], 400);
-        }
+        $user = User::find($id);
+        $user->update($request->all());
+        $this->updateUserInfoRedis(auth()->user()->id);
+        return $user;
 
     }
 
     public function Authorization(Request $request)
     {
         $email = $request->email;
-        $password = DB::table('users')->where('email', $email)->first()->password;
+        $password = User::query()->
+            where('email', $email)->
+            first()->password;
         $auth = auth()->attempt(['email' => $email, 'password' => $request->password]);
         if ($auth) {
             return $auth;
@@ -98,11 +95,11 @@ class UserController extends Controller
 
     public function news(Request $request)
     {
-        $news = DB::select('select * from posts
-            Join followers on
-            followers.follower_id = posts.user_id
-            where posts.user_id = followers.follower_id and
-            followers.user_id = ' . auth()->user()->id . ' LIMIT 50');
+        $news = Post::query()
+            ->leftJoin('followers', 'followers.follower_id', '=', 'posts.user_id')
+            ->where('followers.user_id', '=', auth()->user()->id)
+            ->limit(50)
+            ->get();
         return $news;
 
     }
@@ -110,7 +107,9 @@ class UserController extends Controller
     public function getPosts(Request $request)
     {
         $userId = $request->user_id;
-        $posts = DB::table('posts')->where('user_id', $userId)->get();
+        $posts = Post::query()
+            ->where('user_id', $userId)
+            ->get();
         if ($posts) {
             return $posts;
         } else {
@@ -119,25 +118,24 @@ class UserController extends Controller
 
     }
 
-    public function getProfileInfo(Request $request)
+    public function getProfileInfo(Request $request,$id)
     {
-        $userId = $request->user_id;
-        $followers = DB::table('users')
+        $userId = $id;
+        $followers = User::query()
             ->select('followers.user_id as user', 'followers.follower_id as follower')
             ->join('followers', 'users.id', '=', 'followers.user_id')
             ->where('followers.user_id', $userId)
             ->orWhere('followers.follower_id', $userId)
             ->get();
-        if ($user->id == $userId) {
+        if (auth()->user()->id == $userId) {
             return $followers;
         } else {
-            $blacklist = DB::table('users')
+            $blacklist = User::query()
                 ->select('blacklists.blocked_user_id as  blocked user')
                 ->join('blacklists', 'users.id', '=', 'blacklists.user_id')
                 ->where('blacklists.blocked_user_id', $userId)
                 ->get();
-
-            if (count($blacklist)) {
+            if (!is_null($blacklist)) {
                 return response()->json(['error' => "Cant show profile info, you are in blacklist"], 400);
 
             } else {

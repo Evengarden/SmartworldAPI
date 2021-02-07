@@ -25,13 +25,10 @@ class FollowerController extends Controller
      */
     public function store(Request $request)
     {
-        $user = auth()->user();
-        $userId = $request->user_id;
         $followerId = $request->follower_id;
-        if ($user->id == $followerId) {
+        $request['user_id'] = auth()->user()->id;
+        if (auth()->user()->id == $followerId) {
             return response()->json(['error' => "You can't subscribe to yourself"], 400);
-        } else if ($user->id != $userId) {
-            return response()->json(['error' => "You can't subscribe instead someone else's"], 400);
         } else {
             return Follower::create($request->all());
         }
@@ -66,7 +63,7 @@ class FollowerController extends Controller
     {
         $follower = Follower::find($id);
         if($follower){
-            if ($user->id == $follower->user_id) {
+            if (auth()->user()->id == $follower->user_id) {
                 $follower->update($request->all());
                 return $follower;
             } else {
@@ -89,7 +86,7 @@ class FollowerController extends Controller
     {
         $follower = Follower::find($id);
         if($follower){
-            if ($user->id == $follower->user_id) {
+            if (auth()->user()->id == $follower->user_id) {
                 $follower = Follower::destroy($id);
                 return $follower;
             } else {

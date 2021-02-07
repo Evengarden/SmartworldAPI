@@ -15,20 +15,20 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    public function UpdateUserInfoRedis(int $id)
+    public function updateUserInfoRedis(int $userId)
     {
-        $user = User::find($id);
-
-        $followers = DB::table('users')
+        $user = User::find($userId);
+        
+        $followers = User::query()
             ->select('name')
             ->leftJoin('followers', 'followers.user_id', '=', 'users.id')
-            ->where('followers.user_id', '=', $id)
+            ->where('followers.user_id', '=', $userId)
             ->get();
 
-        $following = DB::table('users')
+        $following = User::query()
             ->select('name')
             ->leftJoin('followers', 'followers.user_id', '=', 'users.id')
-            ->where('followers.follower_id', '=', $id)
+            ->where('followers.follower_id', '=', $userId)
             ->get();
         $userInfo = [
             'User info' => $user,
@@ -36,18 +36,18 @@ class Controller extends BaseController
             'Following info' => $following,
         ];
 
-        Redis::set('user_info/' . $id, json_encode($userInfo));
+        Redis::set('user_info/' . $userId, json_encode($userInfo));
     }
 
-    public function UpdateUserPostRedis(int $id)
+    public function updateUserPostRedis(int $userId)
     {
-        $post = Post::all()->where('user_id', $id);
+        $post = Post::all()->where('user_id', $userId);
 
-        Redis::set('user_post/' . $id, $post);
+        Redis::set('user_post/' . $userId, $post);
     }
 
-    public function DeleteUserPostRedis(int $id)
+    public function deleteUserPostRedis(int $userId)
     {
-        Redis::del('user_post/' . $id);
+        Redis::del('user_post/' . $userId);
     }
 }

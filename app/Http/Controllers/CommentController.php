@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Comment;
 use denis660\Centrifugo\Centrifugo;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Models\Post;
 
 class CommentController extends Controller
 {
@@ -39,25 +39,20 @@ class CommentController extends Controller
      */
     public function store(Request $request)
     {
-        $userId = $request->user_id;
-        if ($user->id == $userId) {
-            $blacklist = DB::table('users')
-                ->select('blacklists.blocked_user_id as  blocked user')
-                ->join('blacklists', 'users.id', '=', 'blacklists.user_id')
-                ->where('blacklists.blocked_user_id', $userId)
-                ->get();
+        $blacklist = Post::query()
+            // ->select('blacklists.blocked_user_id as  blocked user')
+            ->join('blacklists', 'posts.user_id', '=', 'blacklists.user_id')
+            ->where('blacklists.blocked_user_id', auth()->user()->id)
+            ->get();
+        if (count($blacklist)) {
+            return response()->json(['error' => "Cant add the comment, you are in blacklist"], 400);
 
-            if (count($blacklist)) {
-                return response()->json(['error' => "Cant add the comment, you are in blacklist"], 400);
-
-            } else {
-                $comment = Comment::create($request->all());
-                $allComment = Comment::all();
-                $this->centrifugo->publish('comment', ["comment" => $allComment]);
-                return $comment;
-            }
         } else {
-            return response()->json(['error' => "You can't add someone else's comment"], 400);
+            $request['user_id'] = auth()->user()->id;
+            $comment = Comment::create($request->all());
+            $allComment = Comment::all();
+            $this->centrifugo->publish('comment', ["comment" => $allComment]);
+            return $comment;
         }
 
     }
@@ -90,12 +85,8 @@ class CommentController extends Controller
     {
         $comment = Comment::find($id);
         if ($comment) {
-            if ($user->id == $comment->user_id) {
-                $comment->update($request->all());
-                return $comment;
-            } else {
-                return response()->json(['error' => "You cant update someone else's comment"], 400);
-            }
+            $comment->update($request->all());
+            return $comment;
         } else {
             return response()->json(['error' => "Comment not found"], 404);
         }
@@ -112,7 +103,7 @@ class CommentController extends Controller
     {
         $comment = Comment::find($id);
         if ($comment) {
-            if ($user->id == $comment->user_id) {
+            if (auth()->user()->id == $comment->user_id) {
                 $comment = Comment::destroy($id);
                 $allComment = Comment::all();
                 $this->centrifugo->publish('comment', ["comment" => $allComment]);

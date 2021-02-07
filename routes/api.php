@@ -1,6 +1,7 @@
 <?php
 
-use App\Http\Controllers\BlackListController;
+use App\Http\Controllers\BlacklistController;
+use App\Http\Controllers\FollowerController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
@@ -34,6 +35,8 @@ Route::group(['prefix' => '/user', 'middleware' => 'auth'], function () {
     Route::get('', [UserController::class, 'index']);
 
     Route::get('posts', [UserController::class, 'getPosts']);
+
+    Route::get('profile_info/{id}', [UserController::class, 'getProfileInfo']);
 });
 //Posts
 Route::group(['prefix' => '/post', 'middleware' => 'auth'], function () {
@@ -74,16 +77,16 @@ Route::group(['prefix' => '/comment', 'middleware' => 'auth'], function () {
 
 });
 //Follow
-Route::group(['prefix' => '/follow', 'middleware' => 'auth'], function () {
-    Route::get('', [FollowController::class, 'index']);
+Route::group(['prefix' => '/follower', 'middleware' => 'auth'], function () {
+    Route::get('', [FollowerController::class, 'index']);
 
-    Route::post('', [FollowController::class, 'store']);
+    Route::post('', [FollowerController::class, 'store']);
 
-    Route::get('{id}', [FollowController::class, 'show']);
+    Route::get('{id}', [FollowerController::class, 'show']);
 
-    Route::put('{id}', [FollowController::class, 'update']);
+    Route::put('{id}', [FollowerController::class, 'update']);
 
-    Route::delete('{id}', [FollowController::class, 'destroy']);
+    Route::delete('{id}', [FollowerController::class, 'destroy']);
 });
 
 //Check auth

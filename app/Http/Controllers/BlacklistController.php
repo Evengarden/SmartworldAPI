@@ -27,13 +27,11 @@ class BlacklistController extends Controller
 
     public function store(Request $request)
     {
-        $userId = $request->user_id;
-        $blockeduserId = $request->blocked_user_id;
-        if ($user->id == $blockeduserId) {
+        $blockedUserId = $request->blocked_user_id;
+        if (auth()->user()->id == $blockedUserId) {
             return response()->json(['error' => "You can't add yourself to blacklist"], 400);
-        } else if ($user->id != $userId) {
-            return response()->json(['error' => "You can't add to blacklist instead someone else's"], 400);
         } else {
+            $request['user_id']=auth()->user()->id;
             return Blacklist::create($request->all());
         }
 
@@ -68,7 +66,7 @@ class BlacklistController extends Controller
     {
         $blacklist = Blacklist::find($id);
         if ($blacklist) {
-            if ($user->id == $blacklist->user_id) {
+            if (auth()->user()->id == $blacklist->user_id) {
                 $blacklist->update($request->all());
                 return $blacklist;
             } else {
@@ -91,7 +89,7 @@ class BlacklistController extends Controller
     {
         $blacklist = Blacklist::find($id);
         if ($blacklist) {
-            if ($user->id == $blacklist->user_id) {
+            if (auth()->user()->id == $blacklist->user_id) {
                 $blacklist = Blacklist::destroy($id);
                 return $blacklist;
             } else {

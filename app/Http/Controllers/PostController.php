@@ -39,15 +39,12 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        $userId = $request->user_id;
-        if (auth()->user()->id == $userId) {
-            $post = Post::create($request->all());
-            $this->UpdateUserPostRedis($userId);
-            $allPosts = Post::all();
-            $this->centrifugo->publish('posts', ["posts" => $allPosts]);
-            return $post;
-        }
-
+        $request['user_id'] = auth()->user()->id;
+        $post = Post::create($request->all());
+        $this->updateUserPostRedis(auth()->user()->id);
+        $allPosts = Post::all();
+        $this->centrifugo->publish('posts', ["posts" => $allPosts]);
+        return $post;
     }
 
     /**
@@ -80,12 +77,11 @@ class PostController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $user = auth()->user();
         $post = Post::find($id);
         if ($post) {
-            if ($user->id == $post->user_id) {
+            if (auth()->user()->id == $post->user_id) {
                 $post->update($request->all());
-                $this->UpdateUserPostRedis($user->id);
+                $this->updateUserPostRedis(auth()->user()->id);
                 return $post;
             } else {
                 return response()->json(['error' => "You can't update someone else's post"], 400);
@@ -104,13 +100,12 @@ class PostController extends Controller
      */
     public function destroy($id)
     {
-        $user = auth()->user();
         $post = Post::find($id);
         if ($post) {
-            if ($user->id == $post->user_id) {
+            if (auth()->user()->id == $post->user_id) {
                 $post = Post::destroy($id);
                 $allPosts = Post::all();
-                $this->DeleteUserPostRedis($user->id);
+                $this->deleteUserPostRedis(auth()->user()->id);
                 $this->centrifugo->publish('posts', ["posts" => $allPosts]);
                 return $post;
             } else {
