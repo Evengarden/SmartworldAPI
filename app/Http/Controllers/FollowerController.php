@@ -25,10 +25,13 @@ class FollowerController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'follower_id' => ['required', 'integer'],
+        ]);
         $followerId = $request->follower_id;
         $request['user_id'] = auth()->user()->id;
         if (auth()->user()->id == $followerId) {
-            return response()->json(['error' => "You can't subscribe to yourself"], 400);
+            return response()->json(['error' => 'You can`t subscribe to yourself'], 400);
         } else {
             return Follower::create($request->all());
         }
@@ -47,7 +50,7 @@ class FollowerController extends Controller
         if ($follower) {
             return $follower;
         } else {
-            return response()->json(['error' => "Follower not found"], 404);
+            return response()->json(['error' => 'Follower not found'], 404);
         }
 
     }
@@ -61,16 +64,19 @@ class FollowerController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'follower_id' => ['required', 'integer'],
+        ]);
         $follower = Follower::find($id);
         if ($follower) {
             if (auth()->user()->id == $follower->user_id) {
                 $follower->update($request->all());
                 return $follower;
             } else {
-                return response()->json(['error' => "You cant update someone else's follow"], 400);
+                return response()->json(['error' => 'You can`t update someone else`s follow'], 400);
             }
         } else {
-            return response()->json(['error' => "Follower not found"], 404);
+            return response()->json(['error' => 'Follower not found'], 404);
         }
 
     }
@@ -87,12 +93,12 @@ class FollowerController extends Controller
         if ($follower) {
             if (auth()->user()->id == $follower->user_id) {
                 $follower = Follower::destroy($id);
-                return $follower;
+                return response()->json(['message' => 'Follower deleted']);
             } else {
-                return response()->json(['error' => "You cant delete someone else's follow"], 400);
+                return response()->json(['error' => 'You can`t delete someone else`s follow'], 400);
             }
         } else {
-            return response()->json(['error' => "Follower not found"], 404);
+            return response()->json(['error' => 'Follower not found'], 404);
         }
 
     }

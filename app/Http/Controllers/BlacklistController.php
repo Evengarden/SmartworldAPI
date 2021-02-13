@@ -27,9 +27,12 @@ class BlacklistController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'blocked_user_id' => ['required', 'integer'],
+        ]);
         $blockedUserId = $request->blocked_user_id;
         if (auth()->user()->id == $blockedUserId) {
-            return response()->json(['error' => "You can't add yourself to blacklist"], 400);
+            return response()->json(['error' => 'You can`t add yourself to blacklist'], 400);
         } else {
             $request['user_id'] = auth()->user()->id;
             return Blacklist::create($request->all());
@@ -50,7 +53,7 @@ class BlacklistController extends Controller
         if ($blacklist) {
             return $blacklist;
         } else {
-            return response()->json(['error' => "Blacklist not found"], 404);
+            return response()->json(['error' => 'Blacklist not found'], 404);
         }
     }
 
@@ -64,16 +67,19 @@ class BlacklistController extends Controller
 
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'blocked_user_id' => ['required', 'integer'],
+        ]);
         $blacklist = Blacklist::find($id);
         if ($blacklist) {
             if (auth()->user()->id == $blacklist->user_id) {
                 $blacklist->update($request->all());
                 return $blacklist;
             } else {
-                return response()->json(['error' => "You cant update someone else's blacklist"], 400);
+                return response()->json(['error' => 'You can`t update someone else`s blacklist'], 400);
             }
         } else {
-            return response()->json(['error' => "Blacklist not found"], 404);
+            return response()->json(['error' => 'Blacklist not found'], 404);
         }
 
     }
@@ -91,12 +97,12 @@ class BlacklistController extends Controller
         if ($blacklist) {
             if (auth()->user()->id == $blacklist->user_id) {
                 $blacklist = Blacklist::destroy($id);
-                return $blacklist;
+                return response()->json(['message' => 'Blacklist deleted']);
             } else {
-                return response()->json(['error' => "You cant delete someone else's blacklist"], 400);
+                return response()->json(['error' => 'You can`t delete someone else`s blacklist'], 400);
             }
         } else {
-            return response()->json(['error' => "Blacklist not found"], 404);
+            return response()->json(['error' => 'Blacklist not found'], 404);
         }
 
     }

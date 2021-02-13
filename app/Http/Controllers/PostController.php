@@ -39,12 +39,16 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'theme' => ['required', 'string'],
+            'text' => ['required', 'string'],
+        ]);
         $request['user_id'] = auth()->user()->id;
         $post = Post::create($request->all());
         $this->updateUserPostRedis(auth()->user()->id);
-        $allPosts = Post::all();
-        $this->centrifugo->publish('posts', ["posts" => $allPosts]);
-        return $post;
+        $allPosts = Post::latest()->take(10)->get();
+        $this->centrifugo->publish('posts', ['posts' => $allPosts]);
+        return $allPosts;
     }
 
     /**
@@ -58,12 +62,12 @@ class PostController extends Controller
         if (is_null($id)) {
             $post = Redis::get('user_post/' . auth()->user()->id);
         } else {
-            $post = Post::Find($id);
+            $post = Post::find($id);
         }
         if ($post) {
             return $post;
         } else {
-            return response()->json(['error' => "Post not found"], 404);
+            return response()->json(['error' => 'Post not found'], 404);
         }
 
     }
@@ -77,6 +81,10 @@ class PostController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'theme' => ['required', 'string'],
+            'text' => ['required', 'string'],
+        ]);
         $post = Post::find($id);
         if ($post) {
             if (auth()->user()->id == $post->user_id) {
@@ -84,10 +92,10 @@ class PostController extends Controller
                 $this->updateUserPostRedis(auth()->user()->id);
                 return $post;
             } else {
-                return response()->json(['error' => "You can't update someone else's post"], 400);
+                return response()->json(['error' => 'You can`t update someone else`s post'], 400);
             }
         } else {
-            return response()->json(['error' => "Post not found"], 404);
+            return response()->json(['error' => 'Post not found'], 404);
         }
 
     }
@@ -104,15 +112,15 @@ class PostController extends Controller
         if ($post) {
             if (auth()->user()->id == $post->user_id) {
                 $post = Post::destroy($id);
-                $allPosts = Post::all();
+                $allPosts = Post::latest()->take(10)->get();
                 $this->deleteUserPostRedis(auth()->user()->id);
-                $this->centrifugo->publish('posts', ["posts" => $allPosts]);
-                return $post;
+                $this->centrifugo->publish('posts', ['posts' => $allPosts]);
+                return response()->json(['message' => 'Post deleted']);
             } else {
-                return response()->json(['error' => "You cant delete someone else`s post"], 400);
+                return response()->json(['error' => 'You cant delete someone else`s post'], 400);
             }
         } else {
-            return response()->json(['error' => "Post not found"], 404);
+            return response()->json(['error' => 'Post not found'], 404);
         }
 
     }

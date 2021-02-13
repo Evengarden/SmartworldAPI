@@ -39,18 +39,22 @@ class CommentController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'post_id' => ['required', 'integer'],
+            'content' => ['required', 'string'],
+        ]);
         $blacklist = Post::query()
             ->join('blacklists', 'posts.user_id', '=', 'blacklists.user_id')
             ->where('blacklists.blocked_user_id', auth()->user()->id)
             ->get();
         if (count($blacklist)) {
-            return response()->json(['error' => "Cant add the comment, you are in blacklist"], 400);
+            return response()->json(['error' => 'Can`t add the comment, you are in blacklist'], 400);
 
         } else {
             $request['user_id'] = auth()->user()->id;
             $comment = Comment::create($request->all());
-            $allComment = Comment::all();
-            $this->centrifugo->publish('comment', ["comment" => $allComment]);
+            $allComment = Comment::latest()->take(10)->get();
+            $this->centrifugo->publish('comment', ['comment' => $allComment]);
             return $comment;
         }
 
@@ -68,7 +72,7 @@ class CommentController extends Controller
         if ($comment) {
             return $comment;
         } else {
-            return response()->json(['error' => "Comment not found"], 404);
+            return response()->json(['error' => 'Comment not found'], 404);
         }
 
     }
@@ -82,12 +86,16 @@ class CommentController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'post_id' => ['required', 'integer'],
+            'content' => ['required', 'string'],
+        ]);
         $comment = Comment::find($id);
         if ($comment) {
             $comment->update($request->all());
             return $comment;
         } else {
-            return response()->json(['error' => "Comment not found"], 404);
+            return response()->json(['error' => 'Comment not found'], 404);
         }
 
     }
@@ -104,14 +112,14 @@ class CommentController extends Controller
         if ($comment) {
             if (auth()->user()->id == $comment->user_id) {
                 $comment = Comment::destroy($id);
-                $allComment = Comment::all();
-                $this->centrifugo->publish('comment', ["comment" => $allComment]);
-                return $comment;
+                $allComment = Comment::latest()->take(10)->get();
+                $this->centrifugo->publish('comment', ['comment' => $allComment]);
+                return response()->json(['message' => 'Comment deleted']);
             } else {
-                return response()->json(['error' => "You cant delete someone else's comment"], 400);
+                return response()->json(['error' => 'You can`t delete someone else`s comment'], 400);
             }
         } else {
-            return response()->json(['error' => "Comment not found"], 404);
+            return response()->json(['error' => 'Comment not found'], 404);
         }
 
     }

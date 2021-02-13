@@ -30,6 +30,11 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'name' => ['required', 'string'],
+            'email' => ['required', 'string'],
+            'password' => ['required', 'string'],
+        ]);
         $user = User::forceCreate([
             'name' => $request['name'],
             'email' => $request['email'],
@@ -40,7 +45,7 @@ class UserController extends Controller
             $this->UpdateUserInfoRedis($user->id);
             return $user;
         } else {
-            return response()->json(['error' => "Bad request"], 400);
+            return response()->json(['error' => 'Bad request'], 400);
         }
 
     }
@@ -57,7 +62,7 @@ class UserController extends Controller
         if ($user) {
             return $user;
         } else {
-            return response()->json(['error' => "User not found"], 404);
+            return response()->json(['error' => 'User not found'], 404);
         }
 
     }
@@ -71,6 +76,11 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'name' => ['required', 'string'],
+            'email' => ['required', 'string'],
+            'password' => ['required', 'string'],
+        ]);
         $user = User::find($id);
         $user->update($request->all());
         $this->updateUserInfoRedis(auth()->user()->id);
@@ -80,6 +90,10 @@ class UserController extends Controller
 
     public function Authorization(Request $request)
     {
+        $request->validate([
+            'email' => ['required', 'string'],
+            'password' => ['required', 'string'],
+        ]);
         $email = $request->email;
         $password = User::query()->
             where('email', $email)->
@@ -113,7 +127,7 @@ class UserController extends Controller
         if ($posts) {
             return $posts;
         } else {
-            return response()->json(['error' => "Posts not found"], 404);
+            return response()->json(['error' => 'Posts not found'], 404);
         }
 
     }
@@ -136,7 +150,7 @@ class UserController extends Controller
                 ->where('blacklists.blocked_user_id', $userId)
                 ->get();
             if (!is_null($blacklist)) {
-                return response()->json(['error' => "Cant show profile info, you are in blacklist"], 400);
+                return response()->json(['error' => 'Can`t show profile info, you are in blacklist'], 400);
 
             } else {
                 return $followers;
