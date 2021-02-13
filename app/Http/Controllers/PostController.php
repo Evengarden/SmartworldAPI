@@ -48,7 +48,7 @@ class PostController extends Controller
         $this->updateUserPostRedis(auth()->user()->id);
         $allPosts = Post::latest()->take(10)->get();
         $this->centrifugo->publish('posts', ['posts' => $allPosts]);
-        return $allPosts;
+        return $post;
     }
 
     /**
